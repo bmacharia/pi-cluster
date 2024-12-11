@@ -3,3 +3,4 @@ kind: Kustomization
 resources:
   - namepspace.yaml
   - deployment.yaml
+  - storage.yaml
