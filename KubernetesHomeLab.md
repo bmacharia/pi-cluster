@@ -351,3 +351,105 @@ spec:
 
 kubectl port-forward pod/linkding 8080:9090
 ```
+
+# Adding Storage
+
+Adding persistent storage to a LinkedIn deployment in Kubernetes
+
+• Creating a persistent volume claim (PVC) using GitOps
+
+• Using Flux to manage Kubernetes resources
+
+• Demonstrating data persistence across pod restarts
+
+• Exploring security risks of running containers as root
+
+• Introduction to K9S for cluster management
+
+• Importance of securing applications in Kubernetes
+
+1. Persistent storage in Kubernetes:
+
+   • Creating a PVC
+
+   • Adding the PVC to the deployment configuration
+
+   • Demonstrating data persistence when pods are deleted and recreated
+
+2. GitOps workflow:
+
+   • Creating and modifying YAML files for Kubernetes resources
+
+   • Using Flux to detect and apply changes from Git repository
+
+   • Importance of adding new resources to the Flux customization file
+
+3. Kubernetes commands and tools:
+
+   Using kubectl for various operations (describe, exec, port-forward)
+
+   • Introduction to K9S as an alternative to kubectl
+
+   • Using kubens (aliased as 'kn') for namespace management
+
+4. Security concerns:
+
+   • Demonstrating the risks of running containers as root
+
+   • Ability to install packages and modify container contents
+
+   • Introduction to the need for securing applications in Kubernetes
+
+5. Linkding application specifics:
+
+   • Creating a superuser for the Linkding application
+
+   • Demonstrating user persistence with added storage
+
+   • Using port-forwarding to access the application locally
+
+```
+k exec -it linkding-7bffb6cdb9-h7mnm -- python manage.py createsuperuser --username=mischa --email=mischa@example.com
+```
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+name: linkding-data-pvc
+spec:
+accessModes: - ReadWriteOnce
+resources:
+requests:
+storage: 1Gi
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: linkding
+spec:
+replicas: 1
+selector:
+matchLabels:
+app: linkding
+template:
+metadata:
+labels:
+app: linkding
+spec:
+containers: - name: linkding
+image: sissbruecker/linkding:1.31.0
+ports: - containerPort: 9090
+
+          volumeMounts:
+            - name: linkding-data
+              mountPath: /etc/linkding/data
+      volumes:
+        - name: linkding-data
+          persistentVolumeClaim:
+            claimName: linkding-data-pvc
+
+```
+
+```
