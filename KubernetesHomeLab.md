@@ -453,3 +453,39 @@ ports: - containerPort: 9090
 ```
 
 ```
+
+# Enhancing Application Security
+
+Now that the application linkding is deployed to the Kubernetes cluster and Persistent Volume Storage has been added to the Pod the the Application is running on, It is of utmost importantce to improve the security of the application before exposing it to the public Internet
+
+The main focus in to modify the deployment configuration to enhance security.
+
+The Key changes to the deployment are as followed
+
+- Adding a Security Context
+- Spefifying an FS group for volume permisions
+- Setting run as user and run as group
+
+To determine the appropriate user, I will exammine the /etc/passwd file in the container
+
+the www-data-user (ID 33) is identifgied as the intended user for the application
+
+### Security Context Modifications
+
+- Set the container to run as user 33
+- Update volume permissions to user 33
+- Disable privilege escalation
+
+I will commit and push these changes to the repository.
+Flux will be used to reconcile and apply the configuration
+The updated POD will run with restricted permissions
+
+The restricted permisssions incluse
+
+- Unable to perform packkage updates of installations
+- Cannot escalate to root user
+- Limited to pre-installed functionality
+
+I will verify that the application still functions correctly with the new security settings. This security enhancements prepares the application to be exposed to the public internet
+
+Looking Ahead I will be exposing the application to the internet using Cloudflare tunnels
