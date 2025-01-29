@@ -28,7 +28,7 @@ A Kubernetes distribution is a packaged version of Kubernetes that:
 - No SSH access, only API communication
 - Considered more advanced and abstracts away installation details
 
-## K3S (Chosen for this Course)
+## K3S is Chosen Because of the following below
 
 - Balances ease of use with learning opportunities
 - Single binary installation on existing Linux systems
