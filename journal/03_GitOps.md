@@ -1,5 +1,9 @@
 # GitOps Documentation
 
+## **The Point of GitOps**
+
+Is to have the ability yo delete a Kubernetes Cluster and point it to another piece of hardware and rollout with as few manual steps involved. I want to have as much possible automated
+
 ## **Definition of GitOps**
 
 GitOps is a set of best practices that streamline the delivery of applications and infrastructure by leveraging Git as the single source of truth. This methodology ensures that:

@@ -4,12 +4,16 @@ This document provides a technical overview of managing Kubernetes secrets using
 
 ---
 
+In other words this is an exercise in how to commut Kubernetes secrets in public safely
+
+# Handling Secrets In Kubernetes
+
 ## Installing Dependencies
 
 To install both **sops** and **age** using Homebrew:
 
 ```bash
-brew install sops age
+brew install sops age # there are other instructions to install check documentation
 
 age-keygen -o age.agekey
 
@@ -100,5 +104,3 @@ kubectl create secret generic tunnel-credentials \
 --dry-run=client \
 -o yaml > cloudflare-secret.yaml
 ```
-
-Commit this file to your respository and allow Flux CD to handle the deployment updates and details
