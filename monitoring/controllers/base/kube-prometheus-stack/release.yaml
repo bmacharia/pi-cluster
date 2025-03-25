@@ -34,7 +34,7 @@ spec:
       ingress:
         enabled: true
 
-        ingressClassName: treafik
+        ingressClassName: traefik
 
         ## Annotations for Grafana Ingress
         ##
