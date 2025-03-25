@@ -34,11 +34,12 @@ spec:
       ingress:
         enabled: true
 
-       ingressClassName: treafik
+        ingressClassName: treafik
 
         ## Annotations for Grafana Ingress
         ##
-        annotations: {}
+        annotations:
+          {}
           # kubernetes.io/ingress.class: nginx
           # kubernetes.io/tls-acme: "true"
 
@@ -51,9 +52,8 @@ spec:
         ##
         # hosts:
         #   - grafana.domain.com
-        hosts: 
+        hosts:
           - grs.airmanbabu.net
-
 
         ## TLS configuration for grafana Ingress
         ## Secret must be manually created in the namespace
