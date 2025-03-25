@@ -3,3 +3,5 @@ kubeconfig
 
 age.agekey
 resume.md
+tls.crt
+tls.key
