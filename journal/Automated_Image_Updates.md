@@ -19,7 +19,7 @@ Run the following command to create a secret manifest with your GitHub PAT:
 
 ```bash
 kubectl create secret generic renovate-container-env \
-  --from-literal=RENOVATE_TOKEN=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 \
+  --from-literal=RENOVATE_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx \
   --dry-run=client \
   -o yaml > renovate-container-env.yaml
 ```
