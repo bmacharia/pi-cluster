@@ -13,17 +13,17 @@ spec:
       labels:
         app: audiobookshelf
 
-    spec:
-      containers:
-        - name: audiobookshelf
-          image: ghcr.io/advplyr/audiobookshelf:2.20.0
+  spec:
+    containers:
+      - name: audiobookshelf
+        image: ghcr.io/advplyr/audiobookshelf:2.20.0
 
-          envFrom:
-            - configMapRef:
-                name: audiobookshelf-cofigmap
+        envFrom:
+          - configMapRef:
+            name: audiobookshelf-cofigmap
 
-          ports:
-            - containerPort: 3005
-            - protocol: TCP
+        ports:
+          - containerPort: 3005
+          - protocol: TCP
 
-      restartPolicy: Always
+    restartPolicy: Always
