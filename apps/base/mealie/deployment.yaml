@@ -1,10 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels:
-    app: mealie
-  name: mealie    
-  namespace: mealie
+  name: mealie
 spec:
   replicas: 1
   selector:
@@ -18,7 +15,7 @@ spec:
 
     spec:
       containers:
-        - name: mealie
+        - name: mealie-recipes
           image: ghcr.io/mealie-recipes/mealie:v2.8.0
 
           envFrom:
@@ -27,5 +24,6 @@ spec:
 
           ports:
             - containerPort: 9000
+              protocol: TCP
 
       restartPolicy: Always
