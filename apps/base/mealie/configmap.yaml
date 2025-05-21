@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: mealie-configmap
 data:
-  PORT: "9001"
+  PORT: "9000"

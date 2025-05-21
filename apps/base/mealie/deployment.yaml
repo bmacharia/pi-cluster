@@ -23,7 +23,7 @@ spec:
                 name: mealie-configmap
 
           ports:
-            - containerPort: 9001
+            - containerPort: 9000
               protocol: TCP
 
       restartPolicy: Always
