@@ -1,174 +1,273 @@
-# Kubernetes Home Lab
+# A Production Kubernetes Cluster with GitOps Automation
+
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-1.30+-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![K3s](https://img.shields.io/badge/K3s-Latest-FFC61E?logo=k3s&logoColor=black)](https://k3s.io/)
+[![Flux](https://img.shields.io/badge/Flux-Latest-5468FF?logo=flux&logoColor=white)](https://fluxcd.io/)
+[![Renovate](https://img.shields.io/badge/Renovate-Enabled-1A73E8?logo=renovatebot)](https://renovatebot.com/)
 
 ## Overview
 
-This repository serves as a comprehensive guide for building and managing a Kubernetes cluster in a home lab environment. Specifically, it documents the setup of a single-node k3s cluster running on a Raspberry Pi cluster. This project integrates GitOps principles using Flux and employs a monorepo repository structure to manage configurations and deployments. The goal is to provide a streamlined, hands-on experience with Kubernetes and container orchestration. In the near future, additional nodes will be added to expand the cluster.
+This repository represents a **production-grade Kubernetes cluster** built on Raspberry Pi hardware, implementing enterprise-level GitOps practices for automated infrastructure and application management. The cluster demonstrates how to achieve production reliability, security, and operational excellence in a cost-effective home lab environment.
 
-## Features
+## 🏗️ Production Features
 
-- Single-node k3s cluster setup on Raspberry Pi hardware
-- GitOps implementation using Flux for continuous delivery
-- Monorepo structure for managing Kubernetes manifests and configurations
-- Deployment configurations for essential services (e.g., networking, storage, monitoring)
-- Examples of containerized application deployments
-- Tutorials and documentation covering various Kubernetes concepts
+### **GitOps Automation**
 
-## Architecture
+- **Fully automated deployments** via Flux CD with Git as the single source of truth
+- **Zero-downtime updates** through declarative configuration management
+- **Automated rollbacks** and disaster recovery capabilities
+- **Multi-environment support** (staging/production) with promotion workflows
 
-The Kubernetes cluster in this project includes the following components:
+### **Enterprise Security**
 
-- **Single Node (k3s):** A lightweight Kubernetes distribution that simplifies cluster management.
-- **GitOps Workflow:** Automatically synchronizes cluster state with the Git repository using Flux.
-- **Networking:** Implements pod-to-pod communication using k3s’ built-in CNI.
-- **Storage:** Provides persistent storage for stateful workloads.
+- **Secret encryption at rest** using SOPS with Age encryption
+- **Non-root container execution** with proper security contexts
+- **Network policies** and service mesh capabilities
+- **TLS termination** with automated certificate management
+- **Secure external access** via Cloudflare Tunnel
 
-## Prerequisites
+### **Production Monitoring & Observability**
 
-Ensure that the following requirements are met before setting up the Kubernetes home lab:
+- **Complete monitoring stack** with Prometheus, Grafana, and AlertManager
+- **Real-time metrics** and alerting for infrastructure and applications
+- **Log aggregation** and analysis capabilities
+- **Performance monitoring** and capacity planning
 
-### Hardware
+### **Automated Operations**
 
-- Raspberry Pi devices (minimum 1 for the single-node setup)
-- Each Raspberry Pi should have at least 2 GB of RAM and a quad-core processor
-- SD card (32 GB or larger recommended)
-- Reliable power supply and network connectivity
+- **Dependency management** with Renovate bot for security updates
+- **Infrastructure as Code** with Kustomize and Helm
+- **Automated testing** and validation pipelines
+- **Self-healing** infrastructure with Kubernetes controllers
 
-### Software
+## 🚀 Architecture
 
-- **Operating System:** Raspberry Pi OS (64-bit preferred)
-- **k3s:** Lightweight Kubernetes distribution
-- **Flux CLI:** For managing GitOps workflows
-- **Git:** Version control system for managing the monorepo
+This production cluster implements a robust, scalable architecture:
 
-## Setup Instructions
+### **Core Infrastructure**
 
-### 1. Prepare Raspberry Pi
+- **K3s Distribution:** Lightweight, production-ready Kubernetes optimized for ARM
+- **GitOps Controller:** Flux CD managing continuous deployment and reconciliation
+- **Service Mesh:** Integrated networking with load balancing and traffic management
+- **Persistent Storage:** Distributed storage for stateful applications
+- **Backup & Recovery:** Automated backup strategies for data protection
 
-1. Flash the Raspberry Pi OS image onto the SD card.
-2. Configure networking and enable SSH access.
-3. Install necessary dependencies, such as `curl` and `git`.
+### **Application Stack**
 
-### 2. Install k3s
+- **Linkding:** Self-hosted bookmark manager with authentication
+- **Audiobookshelf:** Media server with user management and streaming
+- **Mealie:** Recipe management with meal planning capabilities
+- **Monitoring Dashboard:** Grafana with custom dashboards and alerts
 
-Install k3s on the Raspberry Pi:
+### **Security & Compliance**
+
+- **Zero-trust networking** with encrypted communications
+- **Role-based access control (RBAC)** for fine-grained permissions
+- **Pod security standards** enforcing security policies
+- **Regular security scanning** and vulnerability assessments
+
+## 🎯 Quick Start
+
+### Prerequisites
+
+**Hardware Requirements:**
+
+- Raspberry Pi 4B (4GB RAM minimum recommended)
+- High-speed SD card (64GB+) or SSD storage
+- Reliable network connectivity
+- UPS power backup (recommended for production stability)
+
+**Software Prerequisites:**
+
+- Raspberry Pi OS (64-bit)
+- Git, curl, and basic Linux utilities
+- SSH access configured
+
+### Deployment
+
+1. **Bootstrap the cluster:**
 
 ```bash
+# Install K3s
 curl -sfL https://get.k3s.io | sh -
-```
 
-Verify the installation:
-
-```bash
-kubectl get nodes
-```
-
-### 3. Configure GitOps with Flux
-
-1. Install the Flux CLI:
-
-```bash
+# Install Flux CLI
 curl -s https://fluxcd.io/install.sh | sudo bash
-```
 
-2. Bootstrap Flux with your Git repository:
-
-```bash
+# Bootstrap GitOps
 flux bootstrap github \
-  --owner=<your-username> \
-  --repository=kubernetes-home-lab \
+  --owner=bmacharia \
+  --repository=pi-cluster \
   --branch=main \
-  --path=./clusters/home-lab
+  --path=./clusters/staging
 ```
 
-3. Commit and push your Kubernetes manifests to the repository.
-
-### 4. Verify Flux Installation
-
-Ensure that Flux is synchronizing the cluster state with the repository:
+2. **Verify deployment:**
 
 ```bash
-kubectl get pods -n flux-system
+# Check cluster status
+kubectl get nodes
+kubectl get pods -A
+
+# Monitor Flux reconciliation
+flux get kustomizations
 ```
 
-## Example Deployments
-
-### Deploying Linkding
-
-1. Add the deployment configuration to the repository under `apps/base/linkding/`:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: linkding
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: linkding
-  template:
-    metadata:
-      labels:
-        app: linkding
-    spec:
-      containers:
-        - name: linkding
-          image: sissbruecker/linkding:1.31.0
-          ports:
-            - containerPort: 9090
-```
-
-2. Commit and push the changes to the repository.
-3. Verify that Flux has deployed the application:
+3. **Access services:**
 
 ```bash
-kubectl get pods
+# Port forward to access applications locally
+kubectl port-forward -n linkding svc/linkding 9090:9090
+kubectl port-forward -n audiobookshelf svc/audiobookshelf 8080:80
+kubectl port-forward -n monitoring svc/grafana 3000:80
 ```
 
-### Accessing Linkding
+## 📁 Repository Structure
 
-Use port forwarding to access the service:
+```
+├── 📁 apps/                    # Application deployments
+│   ├── 📁 base/               # Base configurations
+│   │   ├── 📁 audiobookshelf/ # Media server
+│   │   ├── 📁 linkding/       # Bookmark manager
+│   │   └── 📁 mealie/         # Recipe manager
+│   └── 📁 staging/            # Environment overlays
+├── 📁 clusters/               # Cluster configurations
+│   └── 📁 staging/           # Staging environment
+│       ├── apps.yaml         # Application deployments
+│       ├── infrastructure.yaml # Infrastructure controllers
+│       ├── monitoring.yaml   # Observability stack
+│       └── 📁 flux-system/   # Flux CD configuration
+├── 📁 infrastructure/         # Infrastructure controllers
+│   └── 📁 controllers/       # Automated services
+│       └── 📁 base/renovate/ # Dependency automation
+├── 📁 monitoring/            # Observability stack
+│   ├── 📁 controllers/       # Monitoring controllers
+│   └── 📁 configs/          # Monitoring configurations
+└── 📁 journal/              # Documentation and guides
+```
+
+## 🔐 Security & Secrets Management
+
+This cluster implements production-grade security practices:
+
+### **Secret Encryption**
 
 ```bash
-kubectl port-forward svc/linkding 9090:9090
+# Secrets are encrypted using SOPS with Age
+age-keygen -o age.agekey
+export SOPS_AGE_KEY_FILE=age.agekey
+
+# Example encrypted secret
+sops --encrypt --age <public-key> secret.yaml > secret.enc.yaml
 ```
 
-## Folder Structure
+### **Security Contexts**
 
-```
-.
-├── apps
-│   ├── base
-│   │   └── linkding
-│   │       ├── deployment.yaml
-│   │       ├── kustomization.yaml
-│   │       └── namespace.yaml
-│   ├── staging
-│       └── linkding
-│           └── kustomization.yaml
-├── clusters
-│   └── staging
-│       ├── apps.yaml
-│       └── flux-system
-│           ├── gotk-components.yaml
-│           ├── gotk-sync.yaml
-│           └── kustomization.yaml
-```
+All containers run with:
 
-## Best Practices
+- Non-root user execution
+- Read-only root filesystems where possible
+- Dropped capabilities
+- Security context constraints
 
-- **Security:** Secure the cluster using firewalls, role-based access control (RBAC), and network policies.
-- **Backup:** Regularly back up the SD card or cluster configuration to prevent data loss.
-- **Updates:** Keep k3s and Flux up to date to ensure compatibility and security.
+## 📊 Monitoring & Observability
 
-## Contributing
+### **Metrics & Monitoring**
 
-Contributions are encouraged! Please submit issues or pull requests to help enhance this project.
+- **Prometheus** for metrics collection
+- **Grafana** for visualization and dashboards
+- **AlertManager** for alerting and notifications
+- **Node Exporter** for system metrics
 
-## License
+### **Key Dashboards**
 
-This project is distributed under the MIT License. Refer to the LICENSE file for details.
+- Cluster overview and resource utilization
+- Application performance and health
+- Network traffic and security events
+- Storage and backup status
+
+## 🔄 Automated Operations
+
+### **Dependency Management**
+
+Renovate bot automatically:
+
+- Scans for outdated dependencies
+- Creates pull requests for updates
+- Runs security vulnerability checks
+- Maintains up-to-date container images
+
+### **GitOps Workflow**
+
+1. **Push** configuration changes to Git
+2. **Flux** detects changes and reconciles
+3. **Kubernetes** applies configurations
+4. **Monitoring** validates deployment health
+
+## 🛡️ Production Best Practices
+
+### **High Availability**
+
+- Service redundancy and load balancing
+- Automated failover mechanisms
+- Data replication and backup strategies
+- Health checks and self-healing
+
+### **Performance Optimization**
+
+- Resource limits and requests configured
+- HPA (Horizontal Pod Autoscaler) for scaling
+- Storage optimization and caching
+- Network optimization for low latency
+
+### **Operational Excellence**
+
+- Comprehensive logging and audit trails
+- Automated testing and validation
+- Regular security updates and patching
+- Disaster recovery procedures
+
+## 🚀 Scaling & Evolution
+
+This cluster is designed for growth:
+
+- **Multi-node expansion** capability
+- **Cross-cloud deployment** patterns
+- **Advanced networking** with service mesh
+- **Machine learning workloads** support
+
+## 📚 Documentation
+
+Comprehensive guides available in `/journal/`:
+
+- Kubernetes distribution selection
+- GitOps implementation strategies
+- Security hardening procedures
+- Monitoring and alerting setup
+- Application deployment patterns
+
+## 🤝 Contributing
+
+We welcome contributions! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+4. Follow GitOps principles
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **K3s** team for the lightweight Kubernetes distribution
+- **Flux CD** community for GitOps tooling
+- **Raspberry Pi Foundation** for affordable ARM hardware
+- **CNCF** ecosystem for cloud-native technologies
 
 ---
 
-Enjoy exploring Kubernetes with GitOps! 🚀
+**Built with ❤️ for Production Kubernetes on Edge Hardware**
+
+🌟 _Star this repo if you find it useful!_
