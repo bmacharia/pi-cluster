@@ -1,0 +1,14 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: monitoring
+spec:
+  values:
+    grafana:
+      additionalDataSources:
+        - name: Loki
+          type: loki
+          url: http://loki-stack.monitoring.svc.cluster.local:3100
+          access: proxy
+          isDefault: false

@@ -1,0 +1,46 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: loki-stack
+  namespace: monitoring
+spec:
+  interval: 30m
+  dependsOn:
+    - name: kube-prometheus-stack
+  chart:
+    spec:
+      chart: loki-stack
+      version: "2.10.2"
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+        namespace: monitoring
+      interval: 12h
+  values:
+    loki:
+      enabled: true
+      persistence:
+        enabled: true
+        storageClassName: local-path
+        # TODO(human): How much disk should Loki use for log storage?
+        # Consider: you have 3 nodes, NVMe SSDs — how much can you spare?
+        # Common choices: 5Gi (light), 10Gi (moderate), 20Gi (comfortable)
+        size: # e.g. 10Gi
+      config:
+        limits_config:
+          enforce_metric_name: false
+          reject_old_samples: true
+          # TODO(human): How long should logs be retained?
+          # 168h = 7 days | 336h = 14 days | 720h = 30 days
+          # Shorter = less disk used. Longer = more debugging history.
+          reject_old_samples_max_age: # e.g. 168h
+          retention_period: # e.g. 168h
+        chunk_store_config:
+          max_look_back_period: # match retention_period above
+        table_manager:
+          retention_deletes_enabled: true
+          retention_period: # match retention_period above
+    promtail:
+      enabled: true
+    grafana:
+      enabled: false
