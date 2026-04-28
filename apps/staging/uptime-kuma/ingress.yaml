@@ -11,7 +11,7 @@ spec:
         paths:
           - backend:
               service:
-                name: linkding
+                name: uptime-kuma
                 port:
                   number: 3001
             path: /
