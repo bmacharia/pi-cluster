@@ -12,23 +12,16 @@ spec:
     metadata:
       labels:
         app: uptime-kuma
-
-
+    spec:
       containers:
         - name: uptime-kuma
           image: louislam/uptime-kuma:1
-
-
           ports:
             - containerPort: 3001
               protocol: TCP
-
           volumeMounts:
             - mountPath: /app/data
               name: uptime-kuma-data
-
-      restartPolicy: Always
-
       volumes:
         - name: uptime-kuma-data
           persistentVolumeClaim:
