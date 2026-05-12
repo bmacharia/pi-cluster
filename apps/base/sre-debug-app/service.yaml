@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sre-debug-app
+  namespace: sre-debug
+spec:
+  selector:
+    app: sre-debug-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      
