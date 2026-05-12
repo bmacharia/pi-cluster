@@ -4,4 +4,6 @@ namespace: longhorn-system
 resources:
   - ../../base/longhorn/
   - ingress.yaml
+  - middleware.yaml
+  - basic-auth-secret.yaml
 
