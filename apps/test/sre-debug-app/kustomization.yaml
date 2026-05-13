@@ -3,6 +3,5 @@ kind: Kustomization
 resources:
   - ../../base/sre-debug-app
 patches:
-  - path: scenarios/03-pod-iimagepullbackoff/bad-image-patch.yaml
+  - path: scenarios/03-pod-imagepullbackoff/bad-image-patch.yaml
 
-  
