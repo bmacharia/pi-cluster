@@ -16,14 +16,20 @@ The main cause is that the image does not exist, or the image name is misspelled
 
 ## Symptom
 
-What looked broken?
+Flux would produce an exceeded deadline result
+the pod was not created because the image did not exist
+Did a two minute triage
+1. check pods
+2. check events
+3. check kustomization
+
+Dug deeper and check pod description
 
 ## Scope
 
-- One service or many services?
-- Which namespace?
-- Which pods?
-- Which nodes?
+narrowed down the scope to the pod layer
+container image could not be pulled, and as a result the application did not start
+
 
 ## Events
 
