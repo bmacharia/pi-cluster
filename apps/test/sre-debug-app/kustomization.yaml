@@ -2,3 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../../base/sre-debug-app
+patches:
+  - path: scenarios/03-pod-iimagepullbackoff/bad-image-patch.yaml
+
+  
