@@ -1,12 +1,12 @@
 apiVersion: apps/v1
-Kind: Deployment
+kind: Deployment
 metadata:
   name: sre-debug
   namespace: sre-debug
 spec:
   template:
     spec:
-      containers: 
+      containers:
         - name: app
-        - image: ghcr.io/bmacharia/this-image-does-not-exist:lesson-1
+          image: ghcr.io/bmacharia/this-image-does-not-exist:lesson-1
 
