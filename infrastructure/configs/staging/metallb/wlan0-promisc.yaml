@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: wlan0-promisc
+  namespace: metallb-system
+spec:
+  selector:
+    matchLabels:
+      app: wlan0-promisc
+  template:
+    metadata:
+      labels:
+        app: wlan0-promisc
+    spec:
+      hostNetwork: true
+      tolerations:
+      - operator: Exists
+      containers:
+      - name: promisc
+        image: busybox:1.37
+        # MetalLB L2 ARP responses require promiscuous mode on WiFi interfaces.
+        # Without it the WiFi firmware silently drops ARP requests for VIP IPs.
+        command:
+        - /bin/sh
+        - -c
+        - |
+          while true; do
+            ip link set wlan0 promisc on
+            sleep 60
+          done
+        securityContext:
+          privileged: true
+        resources:
+          requests:
+            cpu: 1m
+            memory: 4Mi
+          limits:
+            cpu: 5m
+            memory: 8Mi
