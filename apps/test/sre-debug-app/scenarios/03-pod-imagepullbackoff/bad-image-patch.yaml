@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sre-debug
+  name: sre-debug-app
   namespace: sre-debug
 spec:
   template:
