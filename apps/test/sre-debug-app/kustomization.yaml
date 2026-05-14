@@ -4,4 +4,4 @@ resources:
   - ../../base/sre-debug-app
   
 patches:
-  - path: scenarios/05-service-selector/service-selector-patch.yaml
+  - path: /home/devopbiddy/pi-cluster/apps/test/sre-debug-app/scenarios/lesson-02-symptons-vs-root-causes/01-crashloop-sympton-vs-root-cause/crashloop-root-cause-patch.yaml
