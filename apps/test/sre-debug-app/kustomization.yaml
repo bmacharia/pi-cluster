@@ -4,4 +4,4 @@ resources:
   - ../../base/sre-debug-app
   
 patches:
-  - path: scenarios/05-service-selector/service-selector.yaml
+  - path: scenarios/05-service-selector/service-selector-patch.yaml
