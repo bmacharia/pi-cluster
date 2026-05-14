@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sre-debug-app
+  namespace: sre-debug
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          command: ["bin/sh", "-c"]
+          args:
+            - echo "ROOT_CAUSE-bad_startup_command"; exit 1
+
+
