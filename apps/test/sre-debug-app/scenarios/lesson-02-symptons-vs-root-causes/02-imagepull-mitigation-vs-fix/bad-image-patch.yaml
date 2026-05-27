@@ -8,8 +8,5 @@ spec:
     spec:
       containers:
         - name: app
-          command: ["bin/sh", "-c"]
-          args:
-            - echo "ROOT_CAUSE-bad_startup_command"; exit 1
-
-
+          image: ghcr.io/bmacharia/sre-debug-app:not-a-real-tag
+          

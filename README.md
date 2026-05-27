@@ -1,126 +1,55 @@
-🔥 Let's go. Delivering now.
+# pi-cluster
 
----
+A 3-node K3s cluster running on Raspberry Pis at home. I use it to learn Kubernetes the hard way — by running real workloads on it, breaking things, and writing postmortems when I do.
 
-# 🚀 **Production Kubernetes Platform with GitOps Automation**
+The cluster is managed declaratively through GitOps: this repo is the source of truth, and FluxCD reconciles the cluster toward it. Everything you'd change with `kubectl` lives here instead.
 
-*A fully automated, enterprise-grade Kubernetes platform engineered for reliability, security, and operational excellence.*
+## What's running
 
-<!-- Tech Badges -->
+- **K3s** on three Raspberry Pis (one server, two agents), all on Wi-Fi
+- **FluxCD** for GitOps reconciliation, with **SOPS + Age** for encrypted secrets in Git
+- **MetalLB** (Layer 2) for `LoadBalancer` services
+- **Traefik** as ingress, with **Cloudflare Tunnel** for external access
+- **Longhorn** for persistent storage
+- **Prometheus, Grafana, Alertmanager** for monitoring
+- **Renovate** for automated dependency updates
+- Workloads: Uptime Kuma, Linkding, Grafana
 
-![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge\&logo=kubernetes\&logoColor=white)
-![K3s](https://img.shields.io/badge/K3s-FFC61C?style=for-the-badge\&logo=rancher\&logoColor=white)
-![FluxCD](https://img.shields.io/badge/FluxCD-5561FF?style=for-the-badge\&logo=flux\&logoColor=white)
-![Terraform](https://img.shields.io/badge/Terraform-844FBA?style=for-the-badge\&logo=terraform\&logoColor=white)
-![Kustomize](https://img.shields.io/badge/Kustomize-7B42BC?style=for-the-badge\&logo=kubernetes\&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge\&logo=docker\&logoColor=white)
-![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge\&logo=prometheus\&logoColor=white)
-![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge\&logo=grafana\&logoColor=white)
-![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge\&logo=cloudflare\&logoColor=white)
-
----
-
-## 🧭 Overview
-
-This repository showcases a **production-ready Kubernetes platform** engineered using **GitOps principles**, **infrastructure as code**, and **enterprise security standards**. It is architected to demonstrate how modern organizations deploy, manage, and scale cloud-native infrastructure using **K3s**, **FluxCD**, **Kustomize**, and a complete observability stack.
-
-> This platform is designed as a **real-world production reference** — capable of supporting internal developer platforms, microservices, and mission-critical workloads using **declarative, secure, and self-healing automation**.
-
----
-
-## 🎯 Key Platform Capabilities
-
-| Capability                    | Description                                         | Outcome                                  |
-| ----------------------------- | --------------------------------------------------- | ---------------------------------------- |
-| **GitOps Automation**         | Continuous reconciliation using FluxCD              | Zero-drift, auditable deployments        |
-| **Security by Design**        | SOPS encryption, RBAC, TLS, network policies        | Production-grade protection              |
-| **Observability Stack**       | Prometheus, Grafana, AlertManager                   | Full visibility into workloads & cluster |
-| **Infrastructure as Code**    | Kustomize + Terraform for cluster and app lifecycle | Repeatable and scalable architecture     |
-| **Self-Healing Operations**   | Automatic rollback & reconciliation on failure      | 24/7 platform reliability                |
-| **Multi-Environment Support** | Staging and Production via declarative overlays     | Safe promotion workflows                 |
-
----
-
-## 🏗️ Architecture
-
-```mermaid
-flowchart LR
-    A[Git Repository - Source of Truth] --> B[FluxCD Controller]
-    B --> C[Kubernetes API Server]
-    C --> D[Cluster Infrastructure & Workloads]
-    D --> E[Prometheus / Grafana Monitoring]
-    B -->|Reconciliation| A
-```
-
----
-
-## 🔐 Security & Compliance
-
-* **GitOps-controlled secrets** encrypted using SOPS + Age
-* **Zero Trust principles** via NetworkPolicies and TLS
-* **RBAC enforcement** across namespaces
-* **Non-root containers** and immutable infrastructure
-* **Automated dependency updates** using Renovate
-
----
-
-## 📊 Monitoring & Observability
-
-| Component         | Purpose                        |
-| ----------------- | ------------------------------ |
-| **Prometheus**    | Metrics & alerting data source |
-| **Grafana**       | Visualization and dashboards   |
-| **AlertManager**  | Automated notifications        |
-| **Node Exporter** | System-level performance data  |
-
-Key dashboards include:
-
-* Cluster health and performance
-* Workload metrics
-* Storage and network activity
-* Alerting & incident response-ready views
-
----
-
-## ⚙️ GitOps Workflow
-
-```text
-1. Developer pushes change to Git
-2. FluxCD automatically detects change
-3. Flux applies change to cluster
-4. Prometheus/Grafana validate cluster state
-5. Rollback occurs automatically if reconciliation fails
-```
-
----
-
-## 📁 Repository Structure (Enterprise Format)
+## Repo layout
 
 ```
-📦 pi-cluster
-├── apps/              # Application workloads
-│   ├── base/          # Base kustomizations
-│   └── staging/       # Environment-specific overlays
-├── clusters/          # Cluster bootstrapping & Flux system
-│   └── staging/
-├── monitoring/        # Monitoring controllers
-├── infrastructure/    # Infra controllers, ingress, storage
-└── journal/           # Operational runbooks & documentation
+apps/             # application workloads (base + staging overlays)
+clusters/staging/ # Flux bootstrap manifests for the cluster
+infrastructure/   # MetalLB, Traefik, Longhorn, cert-manager, etc.
+monitoring/       # Prometheus / Grafana / Alertmanager
+journal/          # runbooks and operational notes
+postmortem-*.md   # incident postmortems (the interesting bits)
 ```
 
----
+## How a change reaches the cluster
 
-## 🚀 Deployment
+1. Push a commit to `main`.
+2. Flux's `source-controller` notices the new revision.
+3. `kustomize-controller` builds the kustomization, decrypts any SOPS-encrypted secrets, and diffs against the live cluster.
+4. Changes are applied. If reconciliation fails, the previous state is preserved and the failure surfaces in `flux get kustomizations`.
 
-### ✅ Prerequisites
+No `kubectl apply` from a laptop, ever. If it isn't in Git, it isn't in the cluster.
 
-* K3s or compatible Kubernetes cluster
-* FluxCD CLI installed
-* kubectl access configured
+## Postmortems
 
-### 🔄 Bootstrap Command
+The most useful artifacts in this repo. Each one is a real outage I debugged on this cluster:
 
-```bash
+- [**MetalLB VIP unreachable — Wi-Fi promiscuous mode**](./postmortem-metallb-vip-wifi-promisc-2026-05-13.md) — All ingress went dark. MetalLB logs said "announced." ARP failed everywhere. `tcpdump` accidentally fixed it, which turned out to be the diagnostic: Wi-Fi firmware filters incoming ARP for IPs the card doesn't own, so MetalLB's raw socket never saw the requests. Permanent fix is a DaemonSet that keeps `wlan0` in promiscuous mode.
+- [**Flux reconciliation failure — missing sops-age secret & stuck Terminating namespaces**](./postmortem-flux-sops-stuck-namespaces-2026-05-12.md) — Post-bootstrap, five kustomizations wouldn't reconcile. SOPS key was missing (it's not in Git, by design) and two namespaces were stuck Terminating because Longhorn's cluster-wide admission webhooks outlived its namespace, blocking finalizer cleanup.
+- [**uptime-kuma VIP unreachable**](./postmortem-uptime-kuma-vip-2026-04-30.md) — Three overlapping causes: k3s's built-in `klipper-lb` was still running alongside MetalLB, MetalLB's memberlist port 7946 was blocked because Ubuntu 24.04 ships dual iptables backends and rules went to the wrong one, and a stale `ServiceL2Status` CR was stuck in a reconciliation loop on an immutable field.
+
+## What this isn't
+
+It's a homelab. The control plane is a single node, storage is Longhorn on SD cards, and the nodes talk over Wi-Fi. A real production cluster would have HA control plane, wired networking (ideally with BGP-mode MetalLB), proper persistent storage, secret management backed by a KMS, and a CI pipeline gating PRs. The point of this project is to operate something end-to-end, not to pretend it's enterprise infrastructure.
+
+## Bootstrap
+
+```
 flux bootstrap github \
   --owner=bmacharia \
   --repository=pi-cluster \
@@ -128,32 +57,14 @@ flux bootstrap github \
   --path=./clusters/staging
 ```
 
----
+Then create the SOPS key secret (this step is intentionally outside Git):
 
-## 📌 Resume & LinkedIn Achievement Bullets
-
-**Use these directly in your resume & LinkedIn projects section:**
-
-* Engineered a **production-grade Kubernetes platform** using **GitOps automation (FluxCD)**, enabling **continuous reconciliation and zero-drift deployments** across environments.
-* Implemented **enterprise security controls**, including **SOPS-encrypted secrets, RBAC, TLS termination, and network policies**, ensuring compliance and workload isolation.
-* Deployed a complete **observability stack (Prometheus, Grafana, AlertManager)** providing actionable insights and real-time reliability monitoring.
-* Automated platform operations with **Renovate and Kustomize**, enabling **safe rollouts, auto-dependency upgrades**, and **self-healing infrastructure**.
-
-> **LinkedIn Title Suggestion:** *Production Kubernetes Platform with GitOps, Observability & Enterprise Security*
+```
+kubectl create secret generic sops-age \
+  --namespace=flux-system \
+  --from-file=age.agekey=./age.agekey
+```
 
 ---
 
-## 📫 Contact
-
-**Maintainer:** Babu Macharia
-🔗 LinkedIn: [https://linkedin.com/in/babu-macharia](https://linkedin.com/in/babu-macharia)
-🌐 Blog: [https://babumacharia.com](https://babumacharia.com)
-
----
-
-### ⭐ *If this project demonstrates the future of platform automation, consider starring the repository!*
-
-📌 *This platform reflects real-world production standards used by enterprises adopting Kubernetes and GitOps.*
-
----
-
+**Maintainer:** Babu Macharia · [linkedin.com/in/babu-macharia](https://linkedin.com/in/babu-macharia) · [babumacharia.com](https://babumacharia.com)
