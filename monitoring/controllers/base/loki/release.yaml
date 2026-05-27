@@ -5,6 +5,8 @@ metadata:
   namespace: monitoring
 spec:
   interval: 30m
+  upgrade:
+    force: true
   dependsOn:
     - name: kube-prometheus-stack
   chart:
