@@ -4,3 +4,6 @@ resources:
   - ../../base/sre-debug-app
   
   
+patches:
+  - path: scenarios/lesson-02-symptoms-vs-root-causes/03-missing-config-root-cause/missing-config-patch.yaml
+  
