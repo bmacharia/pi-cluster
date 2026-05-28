@@ -3,5 +3,3 @@ kind: Kustomization
 resources:
   - ../../base/sre-debug-app
 
-patches:
-  - path: scenarios/lesson-02-symptoms-vs-root-causes/06-recurring-incident-pattern/recurring-service-selector.yaml
