@@ -1,0 +1,25 @@
+apiVersion : app/v1
+kind: Deployment
+metadata:
+  name: sre-debug-app
+  namespace: sre-debug
+spec:
+  template:
+    spec:
+      containers:
+        - name: app
+          image: python:3.12-alpine
+          command: ["python", "-c"]
+          args:
+           - | 
+             x = []
+             while True:
+                 x.append("x" * 1024 * 1024)
+          resources: 
+            requests:
+              cpu: 25m
+            limits:
+              cpu: 100m
+              memory: 64Mi
+
+
