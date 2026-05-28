@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: service
+metadata:
+  name: sre-debug-app
+  namespace: sre-debug
+spec:
+  selector:
+    app: not-the-real-app
+    
