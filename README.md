@@ -4,6 +4,22 @@ A 3-node K3s cluster running on Raspberry Pis at home. I use it to learn Kuberne
 
 The cluster is managed declaratively through GitOps: this repo is the source of truth, and FluxCD reconciles the cluster toward it. Everything you'd change with `kubectl` lives here instead.
 
+## For Hiring Managers
+
+**What this demonstrates:** Production-grade CI/CD pipeline design — from code commit to deployed application, with automated quality gates at every stage.
+
+**What to evaluate:**
+- `.github/workflows/` — GitHub Actions pipeline definitions
+- `kubernetes/` — Kustomize overlays for environment-specific deployment
+- `.devcontainer/` — Standardized developer environment
+- `src/` — Application code (Python 3.13)
+- `release-please-config.json` — Automated semantic versioning
+
+**Skills demonstrated:** GitHub Actions, Trivy, PyTest, Ruff, Release Please, DevContainers, K3d, Kustomize, Docker, Python, zero-downtime deployment patterns
+
+**Time invested:** 47+ commits
+
+
 ## What's running
 
 - **K3s** on three Raspberry Pis (one server, two agents), all on Wi-Fi
