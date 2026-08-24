@@ -1,0 +1,35 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: node-filesystem-email
+  namespace: monitoring
+
+spec:
+  route:
+    receiver: gmail-email
+
+    matchers:
+      - name: alertname
+        value: NodeRootFilesystemUsageHigh
+        matchType: "="
+
+    groupBy:
+      - alertname
+      - nodename
+
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 12h
+
+  receivers:
+    - name: gmail-email
+      emailConfigs:
+        - to: "babu.macharia@gmail.com"
+          from: "babu.macharia@gmail.com"
+          smarthost: smtp.gmail.com:587
+          authUsername: "babu.macharia@gmail.com"
+          authPassword:
+            name: alertmanager-gmail-smtp
+            key: password
+          requireTLS: true
+          sendResolved: true

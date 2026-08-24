@@ -3,3 +3,5 @@ kind: Kustomization
 resources:
   - grafana.tls.secret.yaml
   - node-filesystem-alert.yaml
+  - alertmanager-gmail-smtp.secret.yaml
+  - alertmanager-email.yaml
