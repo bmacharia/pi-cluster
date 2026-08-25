@@ -10,8 +10,8 @@ spec:
 
     matchers:
       - name: alertname
-        value: NodeRootFilesystemUsageHigh
-        matchType: "="
+        value: "NodeRootFilesystemUsage(High|Critical)"
+        matchType: "=~"
 
     groupBy:
       - alertname
@@ -20,6 +20,18 @@ spec:
     groupWait: 30s
     groupInterval: 5m
     repeatInterval: 12h
+
+    routes:
+      - receiver: gmail-email
+
+        matchers:
+          - name: severity
+            value: critical
+            matchType: "="
+
+        groupWait: 10s
+        groupInterval: 2m
+        repeatInterval: 1h
 
   receivers:
     - name: gmail-email

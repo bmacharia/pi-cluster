@@ -34,3 +34,28 @@ spec:
           annotations:
             summary: "Root filesystem usage is high on {{ $labels.nodename }}"
             description: "Root filesystem usage on {{ $labels.nodename }} is {{ $value }}%. The warning threshold is 65%. Investigate disk growth before kubelet image garbage collection or storage capacity protections are required."
+
+        - alert: NodeRootFilesystemUsageCritical
+
+          expr: |
+            (
+              100 *
+              (
+                1 -
+                node_filesystem_avail_bytes{mountpoint="/",fstype!="tmpfs"}
+                /
+                node_filesystem_size_bytes{mountpoint="/",fstype!="tmpfs"}
+              )
+            )
+            * on(instance) group_left(nodename)
+            node_uname_info
+            > 75
+
+          for: 5m
+
+          labels:
+            severity: critical
+
+          annotations:
+            summary: "Root filesystem usage is critical on {{ $labels.nodename }}"
+            description: "Root filesystem usage on {{ $labels.nodename }} is {{ $value }}%. The critical threshold is 75%. Automated image garbage collection should already have been triggered; investigate why disk usage remains high and whether storage capacity is at risk."
