@@ -1,86 +1,91 @@
-# pi-cluster
+# Kubernetes GitOps Platform
 
-A 3-node K3s cluster running on Raspberry Pis at home. I use it to learn Kubernetes the hard way — by running real workloads on it, breaking things, and writing postmortems when I do.
+`pi-cluster` is a production-patterned Kubernetes platform built on k3s and operated through a GitOps workflow with Flux.
 
-The cluster is managed declaratively through GitOps: this repo is the source of truth, and FluxCD reconciles the cluster toward it. Everything you'd change with `kubectl` lives here instead.
+The repository acts as the declarative source of truth for application workloads, platform services, observability components, and cluster configuration. Flux continuously retrieves the desired configuration from Git, renders the appropriate Kustomize configuration, applies it to Kubernetes, and reconciles configuration drift when the live cluster diverges from the declared state.
 
-## For Hiring Managers
+The repository follows a layered platform structure that separates application configuration from platform infrastructure and operational services. Application manifests are organized using reusable Kustomize bases and environment-specific composition. Cluster-level Flux configuration defines which sections of the repository are independently reconciled, allowing applications, infrastructure controllers, infrastructure configuration, monitoring components, and test workloads to operate as separate reconciliation units.
 
-**What this demonstrates:** Production-grade CI/CD pipeline design — from code commit to deployed application, with automated quality gates at every stage.
+## Delivery Model
 
-**What to evaluate:**
-- `.github/workflows/` — GitHub Actions pipeline definitions
-- `kubernetes/` — Kustomize overlays for environment-specific deployment
-- `.devcontainer/` — Standardized developer environment
-- `src/` — Application code (Python 3.13)
-- `release-please-config.json` — Automated semantic versioning
+The delivery path follows a controller-based model:
 
-**Skills demonstrated:** GitHub Actions, Trivy, PyTest, Ruff, Release Please, DevContainers, K3d, Kustomize, Docker, Python, zero-downtime deployment patterns
-
-**Time invested:** 47+ commits
-
-
-## What's running
-
-- **K3s** on three Raspberry Pis (one server, two agents), all on Wi-Fi
-- **FluxCD** for GitOps reconciliation, with **SOPS + Age** for encrypted secrets in Git
-- **MetalLB** (Layer 2) for `LoadBalancer` services
-- **Traefik** as ingress, with **Cloudflare Tunnel** for external access
-- **Longhorn** for persistent storage
-- **Prometheus, Grafana, Alertmanager** for monitoring
-- **Renovate** for automated dependency updates
-- Workloads: Uptime Kuma, Linkding, Grafana
-
-## Repo layout
-
-```
-apps/             # application workloads (base + staging overlays)
-clusters/staging/ # Flux bootstrap manifests for the cluster
-infrastructure/   # MetalLB, Traefik, Longhorn, cert-manager, etc.
-monitoring/       # Prometheus / Grafana / Alertmanager
-journal/          # runbooks and operational notes
-postmortem-*.md   # incident postmortems (the interesting bits)
+```text
+Git repository
+      ↓
+Flux source-controller retrieves a Git revision
+      ↓
+Flux Kustomizations define reconciliation boundaries
+      ↓
+kustomize-controller renders and applies desired resources
+      ↓
+Kubernetes controllers converge workloads toward the resulting specifications
+      ↓
+Runtime and application-level validation confirms that the deployed system behaves as intended
 ```
 
-## How a change reaches the cluster
+This creates two complementary control loops.
 
-1. Push a commit to `main`.
-2. Flux's `source-controller` notices the new revision.
-3. `kustomize-controller` builds the kustomization, decrypts any SOPS-encrypted secrets, and diffs against the live cluster.
-4. Changes are applied. If reconciliation fails, the previous state is preserved and the failure surfaces in `flux get kustomizations`.
+Flux reconciles Git-defined desired state with Kubernetes objects, while native Kubernetes controllers reconcile those objects with running resources such as ReplicaSets, Pods, Services, and endpoints.
 
-No `kubectl apply` from a laptop, ever. If it isn't in Git, it isn't in the cluster.
+## Platform Responsibilities
 
-## Postmortems
+The platform separates several operational domains:
 
-The most useful artifacts in this repo. Each one is a real outage I debugged on this cluster:
+- **Application delivery:** Kubernetes workloads are defined declaratively and composed through Kustomize bases and overlays.
+- **GitOps control plane:** Flux manages source retrieval, reconciliation, pruning, dependency ordering, and drift correction.
+- **Platform infrastructure:** Infrastructure controllers and their configuration are managed independently from application workloads, allowing controller dependencies and cluster services to be deployed in an ordered manner.
+- **Observability:** Prometheus, Grafana, Alertmanager, and supporting monitoring components provide cluster and workload visibility.
+- **Secrets management:** SOPS with age is used to support encrypted secrets stored alongside declarative configuration and decrypted by the GitOps workflow when applied.
+- **Dependency automation:** Renovate configuration supports automated dependency and container-image update workflows.
+- **Operations:** Runbooks, experiments, incident notes, and engineering documentation capture operational knowledge alongside the platform configuration.
 
-- [**MetalLB VIP unreachable — Wi-Fi promiscuous mode**](./postmortem-metallb-vip-wifi-promisc-2026-05-13.md) — All ingress went dark. MetalLB logs said "announced." ARP failed everywhere. `tcpdump` accidentally fixed it, which turned out to be the diagnostic: Wi-Fi firmware filters incoming ARP for IPs the card doesn't own, so MetalLB's raw socket never saw the requests. Permanent fix is a DaemonSet that keeps `wlan0` in promiscuous mode.
-- [**Flux reconciliation failure — missing sops-age secret & stuck Terminating namespaces**](./postmortem-flux-sops-stuck-namespaces-2026-05-12.md) — Post-bootstrap, five kustomizations wouldn't reconcile. SOPS key was missing (it's not in Git, by design) and two namespaces were stuck Terminating because Longhorn's cluster-wide admission webhooks outlived its namespace, blocking finalizer cleanup.
-- [**uptime-kuma VIP unreachable**](./postmortem-uptime-kuma-vip-2026-04-30.md) — Three overlapping causes: k3s's built-in `klipper-lb` was still running alongside MetalLB, MetalLB's memberlist port 7946 was blocked because Ubuntu 24.04 ships dual iptables backends and rules went to the wrong one, and a stale `ServiceL2Status` CR was stuck in a reconciliation loop on an immutable field.
+## Git as the Source of Truth
 
-## What this isn't
+The platform is designed around Git as the durable configuration authority rather than treating the Kubernetes API as the primary configuration store.
 
-It's a homelab. The control plane is a single node, storage is Longhorn on SD cards, and the nodes talk over Wi-Fi. A real production cluster would have HA control plane, wired networking (ideally with BGP-mode MetalLB), proper persistent storage, secret management backed by a KMS, and a CI pipeline gating PRs. The point of this project is to operate something end-to-end, not to pretend it's enterprise infrastructure.
+Manual cluster changes can temporarily alter runtime state, but Flux reconciliation restores Git-defined configuration unless the desired state is intentionally changed or reconciliation is suspended.
 
-## Bootstrap
+The reconciliation model can be summarized as:
 
-```
-flux bootstrap github \
-  --owner=bmacharia \
-  --repository=pi-cluster \
-  --branch=main \
-  --path=./clusters/staging
-```
-
-Then create the SOPS key secret (this step is intentionally outside Git):
-
-```
-kubectl create secret generic sops-age \
-  --namespace=flux-system \
-  --from-file=age.agekey=./age.agekey
+```text
+Git desired state
+      ↓
+Flux reconciliation
+      ↓
+Kubernetes objects
+      ↓
+Kubernetes controllers
+      ↓
+Running workloads
 ```
 
----
+This design supports several production engineering practices:
 
-**Maintainer:** Babu Macharia · [linkedin.com/in/babu-macharia](https://linkedin.com/in/babu-macharia) · [babumacharia.com](https://babumacharia.com)
+- Repeatable deployments
+- Auditable configuration changes
+- Drift detection and correction
+- Separation of concerns
+- Declarative environment configuration
+- Controlled platform dependencies
+- Observability
+- Encrypted secret management
+- Evidence-based operational validation
+
+## Engineering Purpose
+
+Although the environment is a three-node homelab rather than a production cluster, its purpose is to reproduce the engineering patterns used to operate larger Kubernetes platforms.
+
+It provides a controlled environment for practicing:
+
+- GitOps operations
+- Kubernetes reconciliation
+- Failure investigation
+- Configuration management
+- Observability
+- Recovery procedures
+- Infrastructure automation
+- Platform engineering
+- Production-style troubleshooting and validation
+
+The environment is intentionally used as an engineering laboratory for understanding how declarative systems behave, how control loops interact, how failures propagate, and how infrastructure changes can be validated with evidence—without claiming production-equivalent scale or failure consequences.
