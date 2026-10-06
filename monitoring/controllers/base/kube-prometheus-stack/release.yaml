@@ -39,7 +39,7 @@ spec:
         ## Annotations for Grafana Ingress
         ##
         annotations:
-          {}
+          lab.airmanbabu.net/gitops-test: "helmrelease"
           # kubernetes.io/ingress.class: nginx
           # kubernetes.io/tls-acme: "true"
 
